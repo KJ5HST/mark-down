@@ -1,0 +1,619 @@
+/* Mark Down — App Chrome */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  background: #f0f0f0;
+  color: #333;
+}
+
+body.dark {
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+body.sepia {
+  background: #e8dcc8;
+  color: #433422;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Toolbar */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: #e8e8e8;
+  border-bottom: 1px solid #d0d0d0;
+  gap: 8px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+body.dark #toolbar {
+  background: #2d2d2d;
+  border-bottom-color: #444;
+}
+
+body.sepia #toolbar {
+  background: #d8ccb4;
+  border-bottom-color: #c8b99a;
+}
+
+#toolbar-left, #toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+#element-type {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  min-width: 80px;
+}
+
+body.dark #element-type {
+  color: #999;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: #ccc;
+  margin: 0 4px;
+}
+
+body.dark .toolbar-separator {
+  background: #555;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: inherit;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.toolbar-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark .toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.format-btn code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+/* Segmented button group for view modes */
+
+.btn-group {
+  display: inline-flex;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid #c0c0c0;
+  background: #d8d8d8;
+}
+
+body.dark .btn-group {
+  border-color: #555;
+  background: #3a3a3a;
+}
+
+body.sepia .btn-group {
+  border-color: #b8a88a;
+  background: #ccc0a8;
+}
+
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.1s, color 0.1s;
+  padding: 0;
+}
+
+body.dark .seg-btn {
+  color: #888;
+}
+
+.seg-btn:not(:last-child) {
+  border-right: 1px solid #c0c0c0;
+}
+
+body.dark .seg-btn:not(:last-child) {
+  border-right-color: #555;
+}
+
+.seg-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #333;
+}
+
+body.dark .seg-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ccc;
+}
+
+.seg-btn.active {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+body.dark .seg-btn.active {
+  background: #555;
+  color: #eee;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+body.sepia .seg-btn.active {
+  background: #f4ecd8;
+  color: #433422;
+}
+
+/* Theme picker */
+
+#theme-picker {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  height: 24px;
+}
+
+body.dark #theme-picker {
+  background: #3a3a3a;
+  border-color: #555;
+  color: #d4d4d4;
+}
+
+body.sepia #theme-picker {
+  background: #f4ecd8;
+  border-color: #c8b99a;
+  color: #433422;
+}
+
+/* Workspace */
+
+#workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  --editor-fraction: 0.5;
+}
+
+#editor-pane {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#preview-pane {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Swap pane order */
+#workspace.swapped {
+  /* CSS flexbox reverse handles both directions */
+}
+
+#workspace.view-hsplit.swapped,
+#workspace.view-editor.swapped,
+#workspace.view-preview.swapped {
+  flex-direction: row-reverse;
+}
+
+#workspace.view-vsplit.swapped {
+  flex-direction: column-reverse;
+}
+
+/* Horizontal split (side by side) */
+#workspace.view-hsplit {
+  flex-direction: row;
+}
+
+#workspace.view-hsplit #editor-pane {
+  width: calc(var(--editor-fraction) * 100%);
+  height: 100%;
+}
+
+#workspace.view-hsplit #divider {
+  display: block;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+#workspace.view-hsplit #preview-pane {
+  width: calc((1 - var(--editor-fraction)) * 100%);
+  height: 100%;
+}
+
+/* Vertical split (top/bottom) */
+#workspace.view-vsplit {
+  flex-direction: column;
+}
+
+#workspace.view-vsplit #editor-pane {
+  height: calc(var(--editor-fraction) * 100%);
+  width: 100%;
+}
+
+#workspace.view-vsplit #divider {
+  display: block;
+  height: 5px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+#workspace.view-vsplit #preview-pane {
+  height: calc((1 - var(--editor-fraction)) * 100%);
+  width: 100%;
+}
+
+/* Editor only */
+#workspace.view-editor #editor-pane {
+  width: 100%;
+  height: 100%;
+}
+
+#workspace.view-editor #divider {
+  display: none;
+}
+
+#workspace.view-editor #preview-pane {
+  display: none;
+}
+
+/* Preview only */
+#workspace.view-preview #editor-pane {
+  display: none;
+}
+
+#workspace.view-preview #divider {
+  display: none;
+}
+
+#workspace.view-preview #preview-pane {
+  width: 100%;
+  height: 100%;
+}
+
+/* Divider */
+
+#divider {
+  background: #d0d0d0;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+#divider:hover {
+  background: #0078d4;
+}
+
+body.dark #divider {
+  background: #444;
+}
+
+body.dark #divider:hover {
+  background: #58a6ff;
+}
+
+body.sepia #divider {
+  background: #c8b99a;
+}
+
+body.sepia #divider:hover {
+  background: #8b5e3c;
+}
+
+/* CodeMirror overrides */
+
+#editor-pane .cm-editor {
+  height: 100%;
+}
+
+/* Preview extras */
+
+.md-preview mark {
+  background: #fff3b0;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+body.dark .md-preview mark {
+  background: #5a4d00;
+  color: #f0e0a0;
+}
+
+.md-preview sub {
+  font-size: 0.8em;
+}
+
+.md-preview sup {
+  font-size: 0.8em;
+}
+
+.md-preview dt {
+  font-weight: 600;
+  margin-top: 0.5em;
+}
+
+.md-preview dd {
+  margin-left: 2em;
+  margin-bottom: 0.3em;
+}
+
+.md-preview .footnotes-sep {
+  margin-top: 2em;
+}
+
+.md-preview .footnotes ol {
+  font-size: 0.9em;
+  color: #666;
+}
+
+body.dark .md-preview .footnotes ol {
+  color: #999;
+}
+
+.md-preview .footnote-ref a,
+.md-preview .footnote-backref {
+  text-decoration: none;
+}
+
+/* Print / PDF export styles
+ *
+ * The .printing class is added to <body> before invoking the native print/PDF
+ * commands so the webview is already in print-ready layout when WKWebView
+ * captures it.  @media print rules also fire for the system print path.
+ */
+
+/* .printing class — applied by JS before native print/export */
+
+body.printing,
+body.printing.dark,
+body.printing.sepia {
+  height: auto !important;
+  overflow: visible !important;
+  background: white !important;
+  color: #1a1a1a !important;
+}
+
+body.printing #toolbar,
+body.printing #editor-pane,
+body.printing #divider {
+  display: none !important;
+}
+
+body.printing #app,
+body.printing #workspace {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+  flex: none !important;
+}
+
+body.printing #preview-pane {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+body.printing .md-preview {
+  background: white !important;
+  color: #1a1a1a !important;
+  padding: 0 !important;
+  max-width: 100% !important;
+  orphans: 3;
+  widows: 3;
+}
+
+body.printing .md-preview > *:first-child {
+  margin-top: 0 !important;
+}
+
+body.printing .md-preview p,
+body.printing .md-preview li {
+  orphans: 3;
+  widows: 3;
+}
+
+body.printing .md-preview h1,
+body.printing .md-preview h2,
+body.printing .md-preview h3,
+body.printing .md-preview h4,
+body.printing .md-preview h5,
+body.printing .md-preview h6 {
+  break-after: avoid;
+  orphans: 3;
+  widows: 3;
+}
+
+body.printing .md-preview pre,
+body.printing .md-preview blockquote,
+body.printing .md-preview img,
+body.printing .md-preview table,
+body.printing .md-preview figure {
+  break-inside: avoid;
+}
+
+body.printing .md-preview ul,
+body.printing .md-preview ol {
+  orphans: 3;
+  widows: 3;
+}
+
+body.printing .md-preview a {
+  color: #1a1a1a !important;
+  text-decoration: underline !important;
+}
+
+body.printing .md-preview pre {
+  border: 1px solid #ddd !important;
+  background: #f8f8f8 !important;
+}
+
+body.printing .md-preview code {
+  background: #f0f0f0 !important;
+  color: #1a1a1a !important;
+}
+
+body.printing .md-preview blockquote {
+  color: #444 !important;
+  background: transparent !important;
+}
+
+body.printing .md-preview table {
+  border-collapse: collapse !important;
+}
+
+body.printing .md-preview th,
+body.printing .md-preview td {
+  border: 1px solid #ccc !important;
+  padding: 6px 12px !important;
+}
+
+body.printing .md-preview th {
+  background: #f5f5f5 !important;
+}
+
+/* @media print — fallback for system print path */
+
+@media print {
+  #toolbar, #editor-pane, #divider {
+    display: none !important;
+  }
+
+  body, body.dark, body.sepia {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: #1a1a1a !important;
+  }
+
+  #app, #workspace {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  #preview-pane {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .md-preview {
+    background: white !important;
+    color: #1a1a1a !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .md-preview > *:first-child {
+    margin-top: 0 !important;
+  }
+
+  .md-preview p,
+  .md-preview li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .md-preview h1, .md-preview h2, .md-preview h3,
+  .md-preview h4, .md-preview h5, .md-preview h6 {
+    break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .md-preview pre, .md-preview blockquote,
+  .md-preview img, .md-preview table, .md-preview figure {
+    break-inside: avoid;
+  }
+
+  .md-preview ul,
+  .md-preview ol {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .md-preview a {
+    color: #1a1a1a !important;
+    text-decoration: underline !important;
+  }
+
+  .md-preview pre {
+    border: 1px solid #ddd !important;
+    background: #f8f8f8 !important;
+  }
+
+  .md-preview code {
+    background: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+
+  .md-preview blockquote {
+    color: #444 !important;
+    background: transparent !important;
+  }
+
+  .md-preview table {
+    border-collapse: collapse !important;
+  }
+
+  .md-preview th, .md-preview td {
+    border: 1px solid #ccc !important;
+    padding: 6px 12px !important;
+  }
+
+  .md-preview th {
+    background: #f5f5f5 !important;
+  }
+}
