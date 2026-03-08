@@ -496,12 +496,15 @@ enum MarkdownToHTML {
         text-decoration: underline;
     }
 
-    /* Images */
+    /* Images — hide broken remote images in sandboxed Quick Look */
     img {
         max-width: 100%;
         height: auto;
         border-radius: 4px;
         margin: 8px 0;
+    }
+    img[src^="http"] {
+        display: none;
     }
 
     /* Strikethrough */

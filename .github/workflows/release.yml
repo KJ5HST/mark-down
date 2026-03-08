@@ -82,7 +82,8 @@ jobs:
           TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
         run: bash scripts/build-quicklook.sh
 
-      - name: Build and release
+      - name: Build Tauri app (macOS)
+        if: runner.os == 'macOS'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -93,6 +94,57 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Mark Down ${{ github.ref_name }}
+          releaseBody: ''
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }} --bundles app
+
+      - name: Patch Info.plist for Quick Look
+        if: runner.os == 'macOS'
+        run: |
+          APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Mark Down.app"
+          bash scripts/patch-plist.sh "$APP_PATH"
+
+      - name: Re-sign app after plist patch
+        if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY != ''
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Mark Down.app"
+          # Sign appex first with its entitlements, then sign the outer app
+          if [[ -d "$APP_PATH/Contents/PlugIns/MarkdownPreview.appex" ]]; then
+            codesign --force --sign "$APPLE_SIGNING_IDENTITY" \
+              --entitlements QuickLookExtension/extension.entitlements \
+              --options runtime --timestamp \
+              "$APP_PATH/Contents/PlugIns/MarkdownPreview.appex"
+          fi
+          codesign --force --sign "$APPLE_SIGNING_IDENTITY" \
+            --options runtime --timestamp \
+            "$APP_PATH"
+
+      - name: Create DMG
+        if: runner.os == 'macOS'
+        env:
+          TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
+        run: bash scripts/create-dmg.sh "$TAURI_ARCH"
+
+      - name: Upload DMG to release
+        if: runner.os == 'macOS'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARCH=${{ contains(matrix.target, 'aarch64') && 'aarch64' || 'x86_64' }}
+          DMG_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/dmg/Mark Down_0.1.0_${ARCH}.dmg"
+          gh release upload "${{ github.ref_name }}" "$DMG_PATH" --clobber
+
+      - name: Build and release (non-macOS)
+        if: runner.os != 'macOS'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Mark Down ${{ github.ref_name }}
