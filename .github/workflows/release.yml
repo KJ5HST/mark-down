@@ -67,6 +67,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Mark Down ${{ github.ref_name }}
