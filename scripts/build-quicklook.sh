@@ -48,9 +48,20 @@ cp "$EXT_SRC/Info.plist" "$BUILD_DIR/Contents/Info.plist"
 # Write PkgInfo
 echo -n "XPC!" > "$BUILD_DIR/Contents/PkgInfo"
 
-# Ad-hoc sign the extension (Tauri re-signs the full app bundle with the real identity)
-codesign --force --sign - \
-    --entitlements "$EXT_SRC/extension.entitlements" \
-    "$BUILD_DIR"
+# Sign the extension
+# In CI, APPLE_SIGNING_IDENTITY is set and the keychain is configured by tauri-action
+# Locally, fall back to ad-hoc signing
+if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+    echo "Signing with identity: $APPLE_SIGNING_IDENTITY"
+    codesign --force --sign "$APPLE_SIGNING_IDENTITY" \
+        --entitlements "$EXT_SRC/extension.entitlements" \
+        --options runtime \
+        --timestamp \
+        "$BUILD_DIR"
+else
+    codesign --force --sign - \
+        --entitlements "$EXT_SRC/extension.entitlements" \
+        "$BUILD_DIR"
+fi
 
 echo "Quick Look extension built successfully"
