@@ -1,7 +1,15 @@
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Mutex;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 use tauri::{Emitter, Manager};
+
+struct PendingFile(Mutex<Option<String>>);
+
+#[tauri::command]
+fn take_pending_file(state: tauri::State<'_, PendingFile>) -> Option<String> {
+    state.0.lock().unwrap().take()
+}
 
 #[tauri::command]
 fn read_file(path: String) -> Result<String, String> {
@@ -119,6 +127,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .manage(PendingFile(Mutex::new(None)))
         .setup(|app| {
             // File menu
             let new_file = MenuItemBuilder::with_id("new", "New")
@@ -253,7 +262,27 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![read_file, write_file, print_webview, export_pdf])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .invoke_handler(tauri::generate_handler![read_file, write_file, print_webview, export_pdf, take_pending_file])
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            if let tauri::RunEvent::Opened { urls } = event {
+                for url in urls {
+                    if let Ok(path) = url.to_file_path() {
+                        if let Some(path_str) = path.to_str() {
+                            // Try to emit directly to the frontend
+                            let emitted = app_handle
+                                .get_webview_window("main")
+                                .map(|w| w.emit("file-open", path_str).is_ok())
+                                .unwrap_or(false);
+                            // Also store in state so the frontend can retrieve it on init
+                            if let Some(state) = app_handle.try_state::<PendingFile>() {
+                                *state.0.lock().unwrap() = Some(path_str.to_string());
+                            }
+                            let _ = emitted;
+                        }
+                    }
+                }
+            }
+        });
 }

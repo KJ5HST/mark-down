@@ -1,4 +1,4 @@
-import { createEditor, setEditorTheme, setEditorContent } from "./editor";
+import { setEditorTheme, setEditorContent } from "./editor";
 import { renderPreview, renderPreviewImmediate } from "./preview";
 import { openFile, saveFile, saveFileAs, exportHtml } from "./files";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -348,8 +348,23 @@ function setupDivider() {
 
 // Menu events from Tauri
 
+async function handleFileOpen(filePath: string) {
+  try {
+    const content = await invoke<string>("read_file", { path: filePath });
+    loadContent(content, filePath);
+  } catch (e) {
+    console.error("Failed to open file:", e);
+  }
+}
+
 async function setupMenuEvents() {
   const appWindow = getCurrentWindow();
+
+  // Listen for files opened via double-click / OS file association
+  await appWindow.listen<string>("file-open", (event) => {
+    handleFileOpen(event.payload);
+  });
+
   await appWindow.listen<string>("menu-event", (event) => {
     const id = event.payload;
     switch (id) {
@@ -378,14 +393,12 @@ void currentTheme;
 
 // Initialize
 
-function init() {
-  const editorPane = document.getElementById("editor-pane")!;
+async function init() {
   const previewPane = document.getElementById("preview-pane")!;
 
   previewPane.classList.add("md-preview");
 
   applyTheme("default");
-  editor = createEditor(editorPane, currentContent, onEditorUpdate);
   savedContent = currentContent;
   renderPreviewImmediate(currentContent, previewPane);
   updateTitle();
@@ -394,6 +407,12 @@ function init() {
   setupDivider();
   setupMenuEvents();
   applyView("hsplit");
+
+  // Check if the app was launched by opening a file (double-click / Open With)
+  const pendingFile = await invoke<string | null>("take_pending_file");
+  if (pendingFile) {
+    await handleFileOpen(pendingFile);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -34,6 +34,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "fileAssociations": [
+      {
+        "ext": ["md", "markdown", "mdown", "mkd"],
+        "mimeType": "text/markdown",
+        "role": "Editor"
+      }
+    ],
     "macOS": {
       "dmg": {
         "background": "dmg/background.png",

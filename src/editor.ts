@@ -124,7 +124,7 @@ export function createEditor(
       bracketMatching(),
       foldGutter(),
       history(),
-      highlightSelectionMatches(),
+      highlightSelectionMatches({ wholeWords: true }),
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
       ...themeExtensions,
