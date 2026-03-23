@@ -265,8 +265,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![read_file, write_file, print_webview, export_pdf, take_pending_file])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app_handle, event| {
-            if let tauri::RunEvent::Opened { urls } = event {
+        .run(|_app_handle, _event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &_event {
                 for url in urls {
                     let path: PathBuf = match url.to_file_path() {
                         Ok(p) => p,
@@ -276,12 +277,10 @@ pub fn run() {
                         Some(s) => s.to_string(),
                         None => continue,
                     };
-                    // Try to emit directly to the frontend
-                    if let Some(window) = app_handle.get_webview_window("main") {
+                    if let Some(window) = _app_handle.get_webview_window("main") {
                         let _ = window.emit("file-open", &path_str);
                     }
-                    // Also store in state so the frontend can retrieve it on init
-                    if let Some(state) = app_handle.try_state::<PendingFile>() {
+                    if let Some(state) = _app_handle.try_state::<PendingFile>() {
                         *state.0.lock().unwrap() = Some(path_str);
                     }
                 }
