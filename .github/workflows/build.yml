@@ -122,11 +122,46 @@ jobs:
             --options runtime --timestamp \
             "$APP_PATH"
 
+      - name: Notarize app after re-signing
+        if: runner.os == 'macOS' && env.APPLE_ID != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Mark Down.app"
+          # Create a zip for notarization submission
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/app.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/app.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "$APP_PATH"
+
       - name: Create DMG
         if: runner.os == 'macOS'
         env:
           TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
         run: bash scripts/create-dmg.sh "$TAURI_ARCH"
+
+      - name: Notarize DMG
+        if: runner.os == 'macOS' && env.APPLE_ID != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
+        run: |
+          DMG_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/dmg/Mark Down_0.1.0_${TAURI_ARCH}.dmg"
+          if [[ -f "$DMG_PATH" ]]; then
+            xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+            xcrun stapler staple "$DMG_PATH"
+          fi
 
       - name: Build Tauri app (non-macOS)
         if: runner.os != 'macOS'
