@@ -12,7 +12,7 @@ ARCH="${1:-aarch64}"
 APP_NAME="Mark Down"
 APP_PATH="$PROJECT_DIR/src-tauri/target/${ARCH}-apple-darwin/release/bundle/macos/${APP_NAME}.app"
 DMG_DIR="$PROJECT_DIR/src-tauri/target/${ARCH}-apple-darwin/release/bundle/dmg"
-DMG_PATH="$DMG_DIR/${APP_NAME}_0.1.0_${ARCH}.dmg"
+DMG_PATH="$DMG_DIR/${APP_NAME}_1.0.0_${ARCH}.dmg"
 VOLUME_NAME="$APP_NAME"
 BG_IMAGE="$PROJECT_DIR/src-tauri/dmg/background.png"
 

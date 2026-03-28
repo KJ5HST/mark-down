@@ -347,6 +347,156 @@ body.sepia #divider:hover {
   background: #8b5e3c;
 }
 
+/* Search panel */
+
+#editor-pane .cm-panels {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  background: #f0f0f0;
+  color: #333;
+}
+
+#editor-pane .cm-panels.cm-panels-top {
+  border-top: none;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+#editor-pane .cm-search {
+  padding: 8px 8px 6px;
+}
+
+#editor-pane .cm-search .cm-textfield {
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+  outline: none;
+  background: white;
+  color: #333;
+}
+
+#editor-pane .cm-search .cm-textfield:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+#editor-pane .cm-search .cm-button {
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #c0c0c0;
+  background: white;
+  color: #333;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+#editor-pane .cm-search .cm-button:hover {
+  background: #e8e8e8;
+}
+
+#editor-pane .cm-search .cm-button:active {
+  background: #d8d8d8;
+}
+
+#editor-pane .cm-search label {
+  font-size: 12px;
+  color: #555;
+}
+
+#editor-pane .cm-search button[name="close"] {
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+}
+
+#editor-pane .cm-search button[name="close"]:hover {
+  color: #333;
+}
+
+body.dark #editor-pane .cm-panels {
+  background: #2d2d2d;
+  color: #d4d4d4;
+}
+
+body.dark #editor-pane .cm-panels.cm-panels-top {
+  border-bottom-color: #444;
+}
+
+body.dark #editor-pane .cm-search .cm-textfield {
+  background: #3a3a3a;
+  border-color: #555;
+  color: #d4d4d4;
+}
+
+body.dark #editor-pane .cm-search .cm-textfield:focus {
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+body.dark #editor-pane .cm-search .cm-button {
+  background: #3a3a3a;
+  border-color: #555;
+  color: #d4d4d4;
+}
+
+body.dark #editor-pane .cm-search .cm-button:hover {
+  background: #4a4a4a;
+}
+
+body.dark #editor-pane .cm-search label {
+  color: #999;
+}
+
+body.dark #editor-pane .cm-search button[name="close"] {
+  color: #888;
+}
+
+body.dark #editor-pane .cm-search button[name="close"]:hover {
+  color: #d4d4d4;
+}
+
+body.sepia #editor-pane .cm-panels {
+  background: #d8ccb4;
+  color: #433422;
+}
+
+body.sepia #editor-pane .cm-panels.cm-panels-top {
+  border-bottom-color: #c8b99a;
+}
+
+body.sepia #editor-pane .cm-search .cm-textfield {
+  background: #f4ecd8;
+  border-color: #c8b99a;
+  color: #433422;
+}
+
+body.sepia #editor-pane .cm-search .cm-textfield:focus {
+  border-color: #8b5e3c;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.2);
+}
+
+body.sepia #editor-pane .cm-search .cm-button {
+  background: #f4ecd8;
+  border-color: #c8b99a;
+  color: #433422;
+}
+
+body.sepia #editor-pane .cm-search .cm-button:hover {
+  background: #e8dcc8;
+}
+
+body.sepia #editor-pane .cm-search label {
+  color: #6b5842;
+}
+
+body.sepia #editor-pane .cm-search button[name="close"] {
+  color: #8b7355;
+}
+
+body.sepia #editor-pane .cm-search button[name="close"]:hover {
+  color: #433422;
+}
+
 /* CodeMirror overrides */
 
 #editor-pane .cm-editor {

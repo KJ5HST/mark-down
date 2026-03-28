@@ -1,6 +1,6 @@
 [package]
 name = "mark-down"
-version = "0.1.0"
+version = "1.0.0"
 description = "A cross-platform markdown editor with live preview and customizable stylesheets"
 authors = ["Terrell"]
 edition = "2021"

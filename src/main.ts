@@ -4,6 +4,7 @@ import { openFile, saveFile, saveFileAs, exportHtml } from "./files";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import type { EditorView } from "@codemirror/view";
+import { openSearchPanel, findNext, findPrevious } from "@codemirror/search";
 
 import defaultTheme from "./themes/default.css?raw";
 import darkTheme from "./themes/dark.css?raw";
@@ -220,6 +221,32 @@ async function doExportPdf() {
   }
 }
 
+// Search helpers
+
+function doFind() {
+  if (editor) openSearchPanel(editor);
+}
+
+function doFindReplace() {
+  if (!editor) return;
+  openSearchPanel(editor);
+  requestAnimationFrame(() => {
+    const field = editor.dom.querySelector('.cm-search input[name="replace"]') as HTMLInputElement;
+    if (field) {
+      field.focus();
+      field.select();
+    }
+  });
+}
+
+function doFindNext() {
+  if (editor) findNext(editor);
+}
+
+function doFindPrevious() {
+  if (editor) findPrevious(editor);
+}
+
 // Format helpers
 
 function applyFormat(before: string, after: string) {
@@ -380,6 +407,10 @@ async function setupMenuEvents() {
       case "view_vsplit": applyView("vsplit"); break;
       case "view_preview": applyView("preview"); break;
       case "view_swap": toggleSwap(); break;
+      case "find": doFind(); break;
+      case "find_replace": doFindReplace(); break;
+      case "find_next": doFindNext(); break;
+      case "find_prev": doFindPrevious(); break;
       case "format_bold": applyFormat("**", "**"); break;
       case "format_italic": applyFormat("*", "*"); break;
       case "format_strike": applyFormat("~~", "~~"); break;

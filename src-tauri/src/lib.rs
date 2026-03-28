@@ -177,6 +177,19 @@ pub fn run() {
                 .build()?;
 
             // Edit menu
+            let find = MenuItemBuilder::with_id("find", "Find...")
+                .accelerator("CmdOrCtrl+F")
+                .build(app)?;
+            let find_replace = MenuItemBuilder::with_id("find_replace", "Find and Replace...")
+                .accelerator("CmdOrCtrl+Alt+F")
+                .build(app)?;
+            let find_next = MenuItemBuilder::with_id("find_next", "Find Next")
+                .accelerator("CmdOrCtrl+G")
+                .build(app)?;
+            let find_prev = MenuItemBuilder::with_id("find_prev", "Find Previous")
+                .accelerator("CmdOrCtrl+Shift+G")
+                .build(app)?;
+
             let edit_menu = SubmenuBuilder::new(app, "Edit")
                 .item(&PredefinedMenuItem::undo(app, None)?)
                 .item(&PredefinedMenuItem::redo(app, None)?)
@@ -185,6 +198,12 @@ pub fn run() {
                 .item(&PredefinedMenuItem::copy(app, None)?)
                 .item(&PredefinedMenuItem::paste(app, None)?)
                 .item(&PredefinedMenuItem::select_all(app, None)?)
+                .separator()
+                .item(&find)
+                .item(&find_replace)
+                .separator()
+                .item(&find_next)
+                .item(&find_prev)
                 .build()?;
 
             // View menu

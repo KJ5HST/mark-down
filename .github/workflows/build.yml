@@ -153,7 +153,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAURI_ARCH: ${{ contains(matrix.target, 'aarch64') && 'aarch64' || contains(matrix.target, 'x86_64') && 'x86_64' || '' }}
         run: |
-          DMG_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/dmg/Mark Down_0.1.0_${TAURI_ARCH}.dmg"
+          DMG_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/dmg/Mark Down_1.0.0_${TAURI_ARCH}.dmg"
           if [[ -f "$DMG_PATH" ]]; then
             xcrun notarytool submit "$DMG_PATH" \
               --apple-id "$APPLE_ID" \

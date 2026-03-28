@@ -4,7 +4,7 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter } from "@codemirror/language";
-import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+import { searchKeymap, highlightSelectionMatches, search } from "@codemirror/search";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 export type UpdateCallback = (content: string) => void;
@@ -124,6 +124,7 @@ export function createEditor(
       bracketMatching(),
       foldGutter(),
       history(),
+      search({ top: true }),
       highlightSelectionMatches({ wholeWords: true }),
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
