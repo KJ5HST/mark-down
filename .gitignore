@@ -25,3 +25,4 @@ src-tauri/MarkdownPreview.appex
 *.njsproj
 *.sln
 *.sw?
+dashboard.html
