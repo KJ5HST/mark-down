@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
+import { buildExportHtml } from "./utils";
 
 const MD_FILTERS = [
   { name: "Markdown", extensions: ["md", "markdown", "mdown", "mkd", "txt"] },
@@ -52,36 +53,6 @@ export async function exportHtml(html: string): Promise<void> {
 
   if (!selected) return;
 
-  const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exported Document</title>
-<style>
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 0 20px;
-  line-height: 1.6;
-  color: #1a1a1a;
-}
-pre { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
-code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.9em; }
-blockquote { border-left: 4px solid #ddd; margin: 0.5em 0; padding: 0.5em 1em; color: #555; }
-table { border-collapse: collapse; }
-th, td { border: 1px solid #ddd; padding: 6px 12px; }
-th { background: #f5f5f5; }
-img { max-width: 100%; }
-hr { border: none; border-top: 1px solid #e0e0e0; margin: 1.5em 0; }
-a { color: #0366d6; }
-</style>
-</head>
-<body>
-${html}
-</body>
-</html>`;
-
+  const fullHtml = buildExportHtml(html);
   await invoke("write_file", { path: selected, content: fullHtml });
 }

@@ -6,22 +6,142 @@ use tauri::{Emitter, Manager};
 
 struct PendingFile(Mutex<Option<String>>);
 
+fn take_pending_file_inner(pending: &Mutex<Option<String>>) -> Option<String> {
+    pending.lock().unwrap().take()
+}
+
 #[tauri::command]
 fn take_pending_file(state: tauri::State<'_, PendingFile>) -> Option<String> {
-    state.0.lock().unwrap().take()
+    take_pending_file_inner(&state.0)
+}
+
+fn read_file_inner(path: &str) -> Result<String, String> {
+    fs::read_to_string(path).map_err(|e| format!("Failed to read {}: {}", path, e))
 }
 
 #[tauri::command]
 fn read_file(path: String) -> Result<String, String> {
-    fs::read_to_string(&path).map_err(|e| format!("Failed to read {}: {}", path, e))
+    read_file_inner(&path)
+}
+
+fn write_file_inner(path: &str, content: &str) -> Result<(), String> {
+    if let Some(parent) = PathBuf::from(path).parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+    fs::write(path, content).map_err(|e| format!("Failed to write {}: {}", path, e))
 }
 
 #[tauri::command]
 fn write_file(path: String, content: String) -> Result<(), String> {
-    if let Some(parent) = PathBuf::from(&path).parent() {
-        fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+    write_file_inner(&path, &content)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn read_file_returns_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        fs::write(&path, "# Hello").unwrap();
+
+        let result = read_file_inner(path.to_str().unwrap());
+        assert_eq!(result.unwrap(), "# Hello");
     }
-    fs::write(&path, &content).map_err(|e| format!("Failed to write {}: {}", path, e))
+
+    #[test]
+    fn read_file_error_on_missing() {
+        let result = read_file_inner("/nonexistent/path/file.md");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Failed to read"));
+    }
+
+    #[test]
+    fn write_file_creates_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("output.md");
+
+        write_file_inner(path.to_str().unwrap(), "# Test content").unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        assert_eq!(content, "# Test content");
+    }
+
+    #[test]
+    fn write_file_creates_parent_dirs() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("sub").join("deep").join("file.md");
+
+        write_file_inner(path.to_str().unwrap(), "nested content").unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        assert_eq!(content, "nested content");
+    }
+
+    #[test]
+    fn write_file_overwrites_existing() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        fs::write(&path, "old content").unwrap();
+
+        write_file_inner(path.to_str().unwrap(), "new content").unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        assert_eq!(content, "new content");
+    }
+
+    #[test]
+    fn write_file_empty_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("empty.md");
+
+        write_file_inner(path.to_str().unwrap(), "").unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        assert_eq!(content, "");
+    }
+
+    #[test]
+    fn write_file_unicode_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("unicode.md");
+
+        write_file_inner(path.to_str().unwrap(), "# Unicode: \u{1f680} \u{00e9}\u{00e8}\u{00ea}").unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains("\u{1f680}"));
+    }
+
+    #[test]
+    fn take_pending_file_returns_some_then_none() {
+        let pending = Mutex::new(Some("/path/to/file.md".to_string()));
+
+        let first = take_pending_file_inner(&pending);
+        assert_eq!(first, Some("/path/to/file.md".to_string()));
+
+        let second = take_pending_file_inner(&pending);
+        assert_eq!(second, None);
+    }
+
+    #[test]
+    fn take_pending_file_returns_none_when_empty() {
+        let pending = Mutex::new(None);
+        assert_eq!(take_pending_file_inner(&pending), None);
+    }
+
+    #[test]
+    fn read_then_write_roundtrip() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("roundtrip.md");
+        let content = "# Roundtrip Test\n\nThis is a **test** with `code`.";
+
+        write_file_inner(path.to_str().unwrap(), content).unwrap();
+        let read_back = read_file_inner(path.to_str().unwrap()).unwrap();
+
+        assert_eq!(read_back, content);
+    }
 }
 
 #[tauri::command]

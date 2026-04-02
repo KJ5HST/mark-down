@@ -9,6 +9,7 @@ import mark from "markdown-it-mark";
 import sub from "markdown-it-sub";
 // @ts-expect-error no types available
 import sup from "markdown-it-sup";
+import { headingToSlug, parseTaskListItem } from "./utils";
 
 const md = MarkdownIt({
   html: true,
@@ -38,12 +39,7 @@ md.renderer.rules.heading_open = function(tokens: any[], idx: number, options: a
       .filter((t: any) => t.type === "text" || t.type === "code_inline")
       .map((t: any) => t.content)
       .join("");
-    const slug = text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-");
-    token.attrSet("id", slug);
+    token.attrSet("id", headingToSlug(text));
   }
   return defaultHeadingRender(tokens, idx, options, env, self);
 };
@@ -52,17 +48,16 @@ md.renderer.rules.heading_open = function(tokens: any[], idx: number, options: a
 md.renderer.rules.list_item_open = function(tokens: any[], idx: number) {
   const contentToken = tokens[idx + 2];
   if (contentToken && contentToken.type === "inline" && contentToken.content) {
-    const match = contentToken.content.match(/^\[([ xX])\]\s*/);
-    if (match) {
-      const checked = match[1] !== " ";
-      contentToken.content = contentToken.content.slice(match[0].length);
+    const task = parseTaskListItem(contentToken.content);
+    if (task) {
+      contentToken.content = task.text;
       if (contentToken.children && contentToken.children.length > 0) {
         const firstChild = contentToken.children[0];
         if (firstChild.type === "text") {
           firstChild.content = firstChild.content.replace(/^\[([ xX])\]\s*/, "");
         }
       }
-      const checkedAttr = checked ? ' checked=""' : "";
+      const checkedAttr = task.checked ? ' checked=""' : "";
       return `<li class="task-list-item"><input type="checkbox"${checkedAttr} disabled="" /> `;
     }
   }

@@ -1,6 +1,7 @@
 import { setEditorTheme, setEditorContent } from "./editor";
 import { renderPreview, renderPreviewImmediate } from "./preview";
 import { openFile, saveFile, saveFileAs, exportHtml } from "./files";
+import { generateTitle } from "./utils";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import type { EditorView } from "@codemirror/view";
@@ -120,11 +121,7 @@ themeStyle.id = "md-theme";
 document.head.appendChild(themeStyle);
 
 function updateTitle() {
-  const name = currentFilePath
-    ? currentFilePath.split("/").pop() || "Untitled"
-    : "Untitled";
-  const dirty = isDirty ? " — Edited" : "";
-  document.title = `${name}${dirty} — Mark Down`;
+  document.title = generateTitle(currentFilePath, isDirty);
 }
 
 function markDirty() {
